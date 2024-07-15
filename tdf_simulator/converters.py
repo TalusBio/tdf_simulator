@@ -1,0 +1,121 @@
+import math
+from dataclasses import dataclass
+from sqlite3 import Connection
+
+import numpy as np
+from loguru import logger
+
+from tdf_simulator.config import TDFConfig
+
+
+@dataclass
+class SpecConverter:
+    intercept: float
+    slope: float
+
+    def convert(self, num: np.typing.ArrayLike):
+        return (num * self.slope) + self.intercept
+
+    def convert_inplace(self, num: np.typing.ArrayLike) -> None:
+        num *= self.slope
+        num += self.intercept
+
+    def to_index(self, num: np.typing.ArrayLike):
+        return ((num - self.intercept) / self.slope).astype(np.int64)
+
+    @classmethod
+    def from_params(cls, im_min, im_max, scan_max_index):
+        scan_intercept = im_max
+        scan_slope = (im_min - scan_intercept) / scan_max_index
+
+        logger.info(
+            f"Starting SpecConverter, with slope: {scan_slope}"
+            f", intercept: {scan_intercept}",
+        )
+
+        return cls(slope=scan_slope, intercept=scan_intercept)
+
+    @classmethod
+    def from_config(cls, config: TDFConfig):
+        return cls.from_params(
+            im_min=config.IM_MIN,
+            im_max=config.IM_MAX,
+            scan_max_index=config.NUM_SCANS,
+        )
+
+    @classmethod
+    def from_connection(cls, conn: Connection):
+        dat = conn.execute("SELECT Key, Value FROM GlobalMetadata;")
+        # OneOverK0AcqRangeLower
+        # OneOverK0AcqRangeUpper
+        dat = {v[0]: v[1] for v in dat}
+
+        im_min = float(dat["OneOverK0AcqRangeLower"])
+        im_max = float(dat["OneOverK0AcqRangeUpper"])
+
+        # This line feels flaky ... I am not sure if this piece of data
+        # is stored elsewhere in the database.
+        scan_max_index = max(x[0] for x in conn.execute("SELECT NumScans FROM Frames;"))
+        return cls.from_params(im_min, im_max, scan_max_index)
+
+
+@dataclass
+class Tof2MzConverter:
+    tof_intercept: float
+    tof_slope: float
+
+    @staticmethod
+    def new(mz_min: float, mz_max: float, tof_max_index: int) -> "Tof2MzConverter":
+        tof_intercept = math.sqrt(mz_min)
+        tof_slope = (math.sqrt(mz_max) - tof_intercept) / tof_max_index
+        return Tof2MzConverter(tof_intercept, tof_slope)
+
+    def convert(self, tof_index_f64: np.array):
+        return np.square(self.tof_intercept + self.tof_slope * tof_index_f64)
+
+    def convert_inplace(self, tof_index_f64: np.array) -> None:
+        tof_index_f64 *= self.tof_slope
+        tof_index_f64 += self.tof_intercept
+        np.square(tof_index_f64, out=tof_index_f64)
+
+    def to_index(self, mz_f64: np.array):
+        return ((np.sqrt(mz_f64) - self.tof_intercept) / self.tof_slope).astype(
+            np.int64
+        )
+
+    @classmethod
+    def from_config(cls, config: TDFConfig):
+        return cls.new(
+            mz_min=config.MZ_MIN,
+            mz_max=config.MZ_MAX,
+            tof_max_index=config.NUM_TOF_BINS,
+        )
+
+    @staticmethod
+    def from_connection(conn: Connection):
+        cursor = conn.cursor()
+
+        # Read TOF Max Index
+        cursor.execute(
+            "SELECT Value FROM GlobalMetadata WHERE Key = 'DigitizerNumSamples'"
+        )
+        tof_max_index_string = cursor.fetchone()[0]
+        tof_max_index = int(tof_max_index_string)
+
+        # Read MZ Max Value
+        cursor.execute("SELECT Value FROM GlobalMetadata WHERE Key = 'MzAcqRangeUpper'")
+        mz_max_value_string = cursor.fetchone()[0]
+        mz_max_value = float(mz_max_value_string)
+
+        # Read MZ Min Value
+        cursor.execute("SELECT Value FROM GlobalMetadata WHERE Key = 'MzAcqRangeLower'")
+        mz_min_value_string = cursor.fetchone()[0]
+        mz_min_value = float(mz_min_value_string)
+
+        logger.info(
+            f"Starting Tof2MzConverter, with slope: {tof_max_index}"
+            f", intercept: {mz_max_value}"
+            f", mz_min: {mz_min_value}",
+        )
+
+        return Tof2MzConverter.new(mz_min_value, mz_max_value, tof_max_index)

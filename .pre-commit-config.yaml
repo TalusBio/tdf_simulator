@@ -1,0 +1,45 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.2.0
+    hooks:
+    -   id: trailing-whitespace
+    -   id: end-of-file-fixer
+    -   id: check-yaml
+    -   id: check-added-large-files
+    -   id: check-merge-conflict
+    -   id: check-ast
+    -   id: check-toml
+    -   id: check-json
+    -   id: check-xml
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  # Ruff version.
+  rev: v0.2.2
+  hooks:
+    # Run the linter.
+    - id: ruff
+      types_or: [ python, pyi, jupyter ]
+
+    # Run the formatter.
+    - id: ruff-format
+      types_or: [ python, pyi, jupyter ]
+- repo: local
+  hooks:
+    - id: pip-compile
+      name: pip-compile
+      description: Automatically compile requirements.
+      entry: uv pip compile
+      language: python
+      files: ^pyproject.toml$
+      pass_filenames: true
+      additional_dependencies: ['uv']
+      minimum_pre_commit_version: "2.9.2"
+      args: ["--python-version", "3.10", "--output-file", "requirements.txt"]
+    # - id: pytest-readme
+    #   name: pytest-readme
+    #   description: Run the tests in the README file.
+    #   entry: python -m pytest --doctest-modules --doctest-glob='*.md'
+    #   language: system
+    #   files: ^README.md$
+    #   pass_filenames: true

@@ -1,0 +1,39 @@
+[general_config]
+mz_min = 100.00
+mz_max = 200
+num_tof_bins = 628556
+ims_min = 0.5
+ims_max = 1.5
+num_scans = 709
+accumulation_time = 100
+ramp_time = 100
+
+[window.defaults]
+isolation_width = 50.0
+collision_energy = 42
+
+[[windows]]
+scan_spans = [[100, 200], [201, 300], [300, 401]]
+isolation_mzs = [700, 600, 500]
+
+[transition.defaults]
+ims_fwhm = 0.05
+rt_fwhm = 0.4
+envelope_intensities = [0.7, 0.3]
+
+[transition.defaults.ms2]
+charge = 1
+
+[[transitions]]
+ms1_mz = 123.2
+ms1_charge = 2
+ms1_intensity = 1000
+ims_apex = 1.2
+ims_fwhm = 0.05
+rt_apex_mins = 12.5
+rt_fwhm = 0.4
+ms2 = [
+    {'mz'= 100, 'intensity'=200},
+    {'mz'= 200, 'intensity'=250},
+    {'mz'= 300, 'intensity'=290},
+]
