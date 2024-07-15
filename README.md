@@ -11,3 +11,15 @@ TDF_SIMULATOR_DEBUG=1 LOGURU_LEVEL="TRACE" python  tdf_simulator/transition_simu
 
 The original implementation was adopted from the tests in timsrust,
 which was written by Sander Willems
+
+
+### UNIMPLEMENTED FAKE ASPIRATIONAL API
+
+It would be cool if we get to this point ... where
+- a text file with peptides and intensities
+- a tdf file that will be used to extract isolation window+tims parameters
+- a config.toml that has parameters for the simulation (noise levels, FWHMs ...)
+
+```
+tdf_simulate --template_tdf ./mysupercoolrun.d/analysis.tdf --config config.toml --intensities peptides.txt
+```
