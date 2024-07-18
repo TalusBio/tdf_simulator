@@ -144,6 +144,7 @@ def test_isotope_transition_sim():
         tdf_config=tdf_config,
         run_config=run_config,
         envelope_intensities=[0.1, 0.2, 0.3],
+        ms2_envelope_intensities=[0.1, 0.2, 0.3],
         ms2_charges=[1, 2, 3, 2],
         ms1_charge=1,
     )
@@ -214,6 +215,7 @@ def test_transition_bundle_simulator():
             tdf_config=tdf_config,
             run_config=run_config,
             envelope_intensities=[0.1, 0.2, 0.3],
+            ms2_envelope_intensities=[0.1, 0.2, 0.3],
             ms2_charges=[1, 2, 3, 2],
             ms1_charge=1,
         )

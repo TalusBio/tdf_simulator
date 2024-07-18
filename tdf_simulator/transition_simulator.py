@@ -60,6 +60,7 @@ class TransitionSimulator(PeakSimulator):
         tdf_config: TDFConfig,
         run_config: RunConfig,
         envelope_intensities: list[float] | None = None,
+        ms2_envelope_intensities: list[float] | None = None,
         ms2_charges: list[int] | None = None,
         ms1_charge: int = 1,
     ) -> None:
@@ -85,12 +86,16 @@ class TransitionSimulator(PeakSimulator):
         if envelope_intensities is None:
             envelope_intensities = [1]
 
+        if ms2_envelope_intensities is None:
+            ms2_envelope_intensities = [1]
+
         if ms2_charges is None:
             ms2_charges = [1] * len(ms2_mzs)
 
         self.ms2_charges = np.array(ms2_charges)
         self.ms1_charge = ms1_charge
         self.envelope_intensities = np.array(envelope_intensities)
+        self.ms2_envelope_intensities = np.array(ms2_envelope_intensities)
 
     @property
     def apex_time(self) -> float:
@@ -210,7 +215,7 @@ class TransitionSimulator(PeakSimulator):
         intens_ems, imss_ems, mzs_ems = self._expand_isotopes(
             intens=intens,
             imss=window_imss,
-            isotope_ratios=self.envelope_intensities,
+            isotope_ratios=self.ms2_envelope_intensities,
             mzs=self.ms2_mzs,
             charges=self.ms2_charges,
         )
