@@ -11,7 +11,7 @@ import pandas as pd
 from loguru import logger
 from tqdm.auto import tqdm
 
-from tdf_simulator.config import RunConfig, TDFConfig
+from tdf_simulator.config import RunConfig, TDFConfig, WindowInfo
 from tdf_simulator.frames import FrameData, FrameInfoBuilder
 from tdf_simulator.tdf_sql import TDFInfoBuilder
 
@@ -34,39 +34,6 @@ class PeakSimulator(ABC):
 
 
 @dataclass
-class WindowInfo:
-    """Class that holds the information about a DIA window."""
-
-    # {'WindowGroup': 2, 'ScanNumBegin': 30,
-    #  'ScanNumEnd': 180, 'IsolationMz': 800,
-    #  'IsolationWidth': 50, 'CollisionEnergy': 42}
-    window_group: int
-    scan_num_begin: int
-    scan_num_end: int
-    isolation_mz: float
-    isolation_width: float
-    collision_energy: float
-
-    @classmethod
-    def from_dict(cls, d: dict[str, Any]) -> WindowInfo:
-        """Convert a dictionary to a WindowInfo object.
-
-        Args:
-            d (dict[str, Any]): The dictionary to convert.
-                It assumes the keys will have the capitalization
-                of the parent table in sql. WhichIsCamelCase.
-        """
-        return cls(
-            window_group=d["WindowGroup"],
-            scan_num_begin=d["ScanNumBegin"],
-            scan_num_end=d["ScanNumEnd"],
-            isolation_mz=d["IsolationMz"],
-            isolation_width=d["IsolationWidth"],
-            collision_energy=d["CollisionEnergy"],
-        )
-
-
-@dataclass
 class TDFSimulator:
     """Class that generates TDF data."""
 
@@ -74,6 +41,7 @@ class TDFSimulator:
     tdf_config: TDFConfig
     run_config: RunConfig
     peak_simulator = None
+    windows: None | list[WindowInfo] = None
 
     def generate_data(self) -> None:
         """Generate the TDF data.
@@ -85,16 +53,13 @@ class TDFSimulator:
         info_builder = FrameInfoBuilder(self.tdf_config, self.run_config)
         frames_template = info_builder.build_frames_df_template()
         self.report_frame_expects(frames_template)
-        windows = info_builder.build_dia_frame_msms_windows()
+        windows, grouped_windows = self.get_grouped_windows(
+            info_builder, frames_template
+        )
         frames_info = info_builder.build_frame_msms_info(
             frames_id=frames_template["Id"],
             frames_msms_type=frames_template["MsMsType"],
         )
-        grouped_windows = {}
-        for g, sdg in windows.groupby("WindowGroup"):
-            grouped_windows[g] = [
-                WindowInfo.from_dict(x) for x in sdg.to_dict(orient="records")
-            ]
 
         frame_to_window = {}
         for _i, row in frames_info.iterrows():
@@ -132,15 +97,15 @@ class TDFSimulator:
                 frame_bin, curr_frame_offset = frame_data.pack_data(curr_frame_offset)
                 f.write(frame_bin)
 
-        max_peaks = max(num_peaks)
         tdf_info_builder = TDFInfoBuilder(self.tdf_config, self.run_config)
-
-        frames = info_builder.complete_frames_df(
+        max_peaks = max(num_peaks)
+        frames = self.complete_frames_df(
             frames_template,
             frame_offsets,
             max_intensities,
             summed_intensities,
             num_peaks,
+            info_builder,
         )
 
         self._write_tdf_file(
@@ -150,6 +115,54 @@ class TDFSimulator:
             dia_frame_msms_window_groups=info_builder.build_frame_msms_window_grops(),
             dia_frame_msms_windows=windows,
         )
+
+    def complete_frames_df(
+        self,
+        frames_template: pd.DataFrame,
+        frame_offsets: list[int],
+        max_intensities: list[float],
+        summed_intensities: list[float],
+        num_peaks: list[int],
+        info_builder: FrameInfoBuilder,
+    ) -> pd.DataFrame:
+        """Complete the frames template with the binary offsets and peak information."""
+
+        frames = info_builder.complete_frames_df(
+            frames_template,
+            frame_offsets,
+            max_intensities,
+            summed_intensities,
+            num_peaks,
+        )
+        return frames
+
+    def get_grouped_windows(
+        self, info_builder: pd.DataFrame | None = None
+    ) -> tuple[pd.DataFrame, dict[int, list[WindowInfo]]]:
+        if self.windows is None:
+            return self._get_grp_windows_tdf(info_builder)
+        else:
+            return self._get_grp_windows_local()
+
+    def _get_grp_windows_tdf(self, info_builder):
+        windows = info_builder.build_dia_frame_msms_windows()
+        grouped_windows = {}
+        for g, sdg in windows.groupby("WindowGroup"):
+            grouped_windows[g] = [
+                WindowInfo.from_dict(x) for x in sdg.to_dict(orient="records")
+            ]
+
+        return windows, grouped_windows
+
+    def _get_grp_windows_local(self):
+        windows = pd.DataFrame([x.to_dict() for x in self.windows])
+        grouped_windows = {}
+        for w in self.windows:
+            if w.window_group not in grouped_windows:
+                grouped_windows[w.window_group] = []
+            grouped_windows[w.window_group].append(w)
+
+        return windows, grouped_windows
 
     def report_start(self) -> None:
         """Report the start of the simulation."""

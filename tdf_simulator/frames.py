@@ -195,13 +195,9 @@ class FrameData:
     def pack_data(self, frame_offset: int) -> bytes:
         local_frame_data = []
 
-        # frame_offsets.append(frame_offset)
         scans = self.frame_counts
         scan_count = len(scans)
         ints = np.concatenate(self.frame_ints)
-        # summed_intensities.append(np.sum(ints))
-        # max_intensities.append(np.max(ints))
-        # num_peaks.append(len(ints))
         buffer = np.zeros(scan_count + len(ints) * 2, dtype=np.uint32)
         buffer[0] = scan_count
         buffer[1:scan_count] = np.array(scans[:-1]) * 2

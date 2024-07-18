@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import sqlite3
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
+from typing import Any
 
 import pandas as pd
+import tomli
+import tomli_w
 from loguru import logger
 
 
@@ -44,6 +47,17 @@ class TDFConfig:
                 max(x[0] for x in conn.execute("SELECT RampTime FROM Frames;"))
             ),
         )
+
+    @classmethod
+    def from_toml_file(cls, file_path: str) -> TDFConfig:
+        with open(file_path, "rb") as f:
+            config = tomli.load(f)
+        return cls(**config["tdf_config"])
+
+    def to_toml(self, file_path: str, *, append: bool = False) -> None:
+        mode = "ab" if append else "wb"
+        with open(file_path, mode) as f:
+            tomli_w.dump({"tdf_config": asdict(self)}, f)
 
 
 @dataclass
@@ -90,17 +104,100 @@ class RunConfig:
             scan_groups_per_window_group=scan_groups_per_window_group,
         )
 
+    @classmethod
+    def from_toml_file(cls, file_path: str) -> RunConfig:
+        with open(file_path, "rb") as f:
+            config = tomli.load(f)
+        return cls(**config["run_config"])
+
+    def to_toml(self, file_path: str, *, append: bool = False) -> None:
+        mode = "ab" if append else "wb"
+        with open(file_path, mode) as f:
+            tomli_w.dump({"run_config": asdict(self)}, f)
+
+
+@dataclass
+class WindowInfo:
+    """Class that holds the information about a DIA window."""
+
+    # {'WindowGroup': 2, 'ScanNumBegin': 30,
+    #  'ScanNumEnd': 180, 'IsolationMz': 800,
+    #  'IsolationWidth': 50, 'CollisionEnergy': 42}
+    window_group: int
+    scan_num_begin: int
+    scan_num_end: int
+    isolation_mz: float
+    isolation_width: float
+    collision_energy: float
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> WindowInfo:
+        """Convert a dictionary to a WindowInfo object.
+
+        Args:
+            d (dict[str, Any]): The dictionary to convert.
+                It assumes the keys will have the capitalization
+                of the parent table in sql. WhichIsCamelCase.
+        """
+        return cls(
+            window_group=d["WindowGroup"],
+            scan_num_begin=d["ScanNumBegin"],
+            scan_num_end=d["ScanNumEnd"],
+            isolation_mz=d["IsolationMz"],
+            isolation_width=d["IsolationWidth"],
+            collision_energy=d["CollisionEnergy"],
+        )
+
+    @classmethod
+    def from_toml_file(cls, file_path: str) -> list[WindowInfo]:
+        with open(file_path, "rb") as f:
+            config = tomli.load(f)
+        return [cls(**x) for x in config["window_info"]]
+
+    @classmethod
+    def to_toml(
+        cls, file_path: str, window_info: list[WindowInfo], *, append: bool = False
+    ) -> None:
+        mode = "ab" if append else "wb"
+        with open(file_path, mode) as f:
+            tomli_w.dump({"window_info": [asdict(x) for x in window_info]}, f)
+
+    @classmethod
+    def from_tdf_connection(cls, conn: sqlite3.Connection) -> list[WindowInfo]:
+        df = pd.read_sql("SELECT * FROM DiaFrameMsMsWindows;", conn)
+        return [cls.from_dict(x) for x in df.to_dict(orient="records")]
+
 
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="Prints the TDF and Run Configs.")
     parser.add_argument("tdf_file", type=str, help="The path to the TDF file.")
+    parser.add_argument(
+        "--toml",
+        type=str,
+        help="The path to the toml file to save the configs.",
+        default=None,
+    )
     args = parser.parse_args()
 
     conn = sqlite3.connect(args.tdf_file)
     tdf_config = TDFConfig.from_tdf_connection(conn)
     run_config = RunConfig.from_tdf_connection(conn)
+    windows = WindowInfo.from_tdf_connection(conn)
     conn.close()
     logger.info(tdf_config)
     logger.info(run_config)
+
+    if args.toml:
+        tdf_config.to_toml(args.toml)
+        run_config.to_toml(args.toml, append=True)
+        WindowInfo.to_toml(args.toml, windows, append=True)
+
+        # Check that they can be read
+        tdf_config = TDFConfig.from_toml_file(args.toml)
+        run_config = RunConfig.from_toml_file(args.toml)
+        windows = WindowInfo.from_toml_file(args.toml)
+        logger.info(tdf_config)
+        logger.info(run_config)
+        logger.info(windows)

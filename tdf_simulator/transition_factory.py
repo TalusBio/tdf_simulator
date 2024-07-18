@@ -1,9 +1,12 @@
+from __future__ import annotations
+
+from collections.abc import Iterable
 from dataclasses import dataclass
 
 from tdf_simulator.config import RunConfig, TDFConfig
 from tdf_simulator.transition_simulator import (
-    TransitionSimulator,
     TransitionBundleSimulator,
+    TransitionSimulator,
 )
 
 
