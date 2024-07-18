@@ -174,7 +174,9 @@ class FrameData:
 
             frame_tofs.append(uta)
             frame_ints.append(
-                np.bincount(unique_tofs[1], weights=sorted_intensities[start:end])
+                np.bincount(
+                    unique_tofs[1], weights=sorted_intensities[start:end]
+                ).astype("uint32")
             )
             curr_num_peaks = len(uta)
             frame_counts.append(curr_num_peaks)

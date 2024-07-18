@@ -1,5 +1,7 @@
 import os
+from dataclasses import dataclass
 from functools import cached_property
+from typing import Union
 
 import numpy as np
 from loguru import logger
@@ -90,6 +92,14 @@ class TransitionSimulator(PeakSimulator):
         self.ms1_charge = ms1_charge
         self.envelope_intensities = np.array(envelope_intensities)
 
+    @property
+    def apex_time(self) -> float:
+        return self.ms1_gauss.apex_time
+
+    @property
+    def time_fwhm(self) -> float:
+        return self.ms1_gauss.time_fwhm
+
     @cached_property
     def ims_values(self) -> np.array:
         return self.ims_converter.convert(
@@ -113,7 +123,7 @@ class TransitionSimulator(PeakSimulator):
         self,
         time: float,
         window_info: list[WindowInfo] | None,
-    ) -> tuple[FrameData, int]:
+    ) -> dict[str, Union[np.array, TDFConfig, RunConfig]]:
         tmp = []
         if window_info is None:
             # MS1 frame
@@ -313,4 +323,67 @@ class TransitionSimulator(PeakSimulator):
 
         # When returning I will flatten the e-m dimensions.
         out = [arr.reshape(-1, arr.shape[-1]) for arr in (intens_ems, imss_ems, mz_ems)]
+        return out
+
+
+@dataclass
+class TransitionBundleSimulator:
+    elems: list[TransitionSimulator]
+    max_fwhms: float
+    _left_edge: np.array = None
+    _right_edge: np.array = None
+    _rollmax_right_edge: np.array = None
+
+    def __post_init__(self):
+        # Sort by apex - (max_fwhms * fwhm)
+        self.elems.sort(key=lambda x: x.apex_time - (self.max_fwhms * x.time_fwhm))
+        self._left_edge = np.array(
+            [x.apex_time - (self.max_fwhms * x.time_fwhm) for x in self.elems]
+        )
+        # Note this is not necessarily sorted
+        self._right_edge = np.array(
+            [x.apex_time + (self.max_fwhms * x.time_fwhm) for x in self.elems]
+        )
+        # This one will be! Since its the rolling max
+        self._rollmax_right_edge = np.maximum.accumulate(self._right_edge)
+
+    def generate_frame_data(self, time: float, window_info: list[WindowInfo] | None):
+        array_dicts = self._generate_frame_data(time, window_info)
+        out = FrameData.from_value_arrays(
+            **array_dicts,
+            num_scans=self.elems[0].tdf_config.NUM_SCANS,
+        )
+        npeaks = len(out.frame_ints)
+        return out, npeaks
+
+    def _generate_frame_data(self, time: float, window_info: list[WindowInfo] | None):
+        right_end = np.searchsorted(self._left_edge, time, "right")
+        left_start = np.searchsorted(self._right_edge, time, "left")
+
+        tmp = []
+        for elem in self.elems[left_start:right_end]:
+            tmp.append(elem._generate_frame_data(time, window_info))
+
+        if len(tmp) == 0:
+            return {
+                "mzs": np.array([]),
+                "intensities": np.array([]),
+                "imss": np.array([]),
+                "ims_converter": self.elems[0].ims_converter,
+                "mz_converter": self.elems[0].mz_converter,
+            }
+
+        out = {
+            "mzs": np.concatenate([d["mzs"] for d in tmp]),
+            "intensities": np.concatenate([d["intensities"] for d in tmp]),
+            "imss": np.concatenate([d["imss"] for d in tmp]),
+        }
+
+        out.update(
+            {
+                "ims_converter": self.elems[0].ims_converter,
+                "mz_converter": self.elems[0].mz_converter,
+            }
+        )
+
         return out

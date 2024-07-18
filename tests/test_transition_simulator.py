@@ -3,6 +3,7 @@ import numpy as np
 from tdf_simulator.config import RunConfig, TDFConfig
 from tdf_simulator.transition_simulator import (
     GaussianSimulator,
+    TransitionBundleSimulator,
     TransitionSimulator,
     WindowInfo,
 )
@@ -176,6 +177,65 @@ def test_isotope_transition_sim():
     frame_data_ms1 = ts.generate_frame_data(60, None)
     num_unique_mzs = len(np.unique(np.concatenate(frame_data_ms1[0].frame_tofs)))
     assert num_unique_mzs == 3, f"Expected 3 unique mzs, got {num_unique_mzs}"
+
+
+def test_transition_bundle_simulator():
+    tdf_config = TDFConfig(
+        MZ_MIN=100,
+        MZ_MAX=1000,
+    )
+    run_config = RunConfig(
+        num_cycles=2,
+        frames_per_cycle=3,
+        num_dia_window_groups=2,
+        scan_groups_per_window_group=2,
+    )
+
+    simulators = []
+    for i in range(3):
+        ms1_mz = 110 + (i * 20)
+        ms1_intensity = 1000
+        ms2_mzs = [x + (5 * i) for x in [100, 200, 300, 998.45]]
+        ms2_intensities = [1000, 2000, 3000, 4000]
+        apex_time = 4 + i
+        time_fwhm = 0.5
+        apex_ims = 1.1 + (0.05 * i)
+        ims_fwhm = 0.1
+
+        ts = TransitionSimulator(
+            ms1_mz=ms1_mz,
+            ms1_intensity=ms1_intensity,
+            ms2_mzs=ms2_mzs,
+            ms2_intensities=ms2_intensities,
+            apex_time=apex_time,
+            time_fwhm=time_fwhm,
+            apex_ims=apex_ims,
+            ims_fwhm=ims_fwhm,
+            tdf_config=tdf_config,
+            run_config=run_config,
+            envelope_intensities=[0.1, 0.2, 0.3],
+            ms2_charges=[1, 2, 3, 2],
+            ms1_charge=1,
+        )
+        simulators.append(ts)
+
+    tbs = TransitionBundleSimulator(simulators, max_fwhms=3)
+
+    wi = WindowInfo(
+        window_group=1,
+        scan_num_begin=100,
+        scan_num_end=600,
+        isolation_mz=200,
+        isolation_width=200,
+        collision_energy=42,
+    )
+
+    frame_data1 = tbs.generate_frame_data(60, [wi])
+    assert len(frame_data1[0].frame_ints) == 0
+    # Most should be 0s ...
+
+    frame_data2 = tbs.generate_frame_data(6, [wi])
+    breakpoint()
 
 
 if __name__ == "__main__":
