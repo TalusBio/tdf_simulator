@@ -171,6 +171,8 @@ class WindowInfo:
 if __name__ == "__main__":
     import argparse
 
+    from tdf_simulator.converters import SpecConverter, Tof2MzConverter
+
     parser = argparse.ArgumentParser(description="Prints the TDF and Run Configs.")
     parser.add_argument("tdf_file", type=str, help="The path to the TDF file.")
     parser.add_argument(
@@ -185,6 +187,8 @@ if __name__ == "__main__":
     tdf_config = TDFConfig.from_tdf_connection(conn)
     run_config = RunConfig.from_tdf_connection(conn)
     windows = WindowInfo.from_tdf_connection(conn)
+    spec_converter = SpecConverter.from_connection(conn)
+    tof2mz_converter = Tof2MzConverter.from_connection(conn)
     conn.close()
     logger.info(tdf_config)
     logger.info(run_config)

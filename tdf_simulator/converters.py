@@ -98,6 +98,11 @@ class Tof2MzConverter:
         """Creates a new Tof2MzConverter object from the given parameters."""
         tof_intercept = math.sqrt(mz_min)
         tof_slope = (math.sqrt(mz_max) - tof_intercept) / tof_max_index
+
+        logger.info(
+            f"Starting Tof2MzConverter, with slope: {tof_slope}"
+            f", intercept: {tof_intercept}"
+        )
         return Tof2MzConverter(tof_intercept, tof_slope)
 
     def convert(self, tof_index_f64: np.array) -> np.array:
@@ -154,9 +159,9 @@ class Tof2MzConverter:
         mz_min_value = float(mz_min_value_string)
 
         logger.info(
-            f"Starting Tof2MzConverter, with slope: {tof_max_index}"
-            f", intercept: {mz_max_value}"
-            f", mz_min: {mz_min_value}",
+            f"Starting Tof2MzConverter, with tof max ind: {tof_max_index}"
+            f", max val: {mz_max_value}"
+            f", mz min: {mz_min_value}",
         )
 
         return Tof2MzConverter.new(mz_min_value, mz_max_value, tof_max_index)
