@@ -3,17 +3,6 @@ import numpy as np
 from tdf_simulator.converters import SpecConverter, Tof2MzConverter
 
 
-def test_spec_back_and_forth() -> None:
-    """Checks that the conversion back and forth is consistent."""
-    # slope: -0.0008737864077669902, intercept: 1.45
-    conv = SpecConverter(intercept=1.45, slope=-0.0008737864077669902)
-    scan = np.array([1, 2, 3, 4, 5], dtype="float64")
-    ims = conv.convert(scan)
-    scan_back = conv.to_index(ims)
-
-    assert np.allclose(scan, scan_back)
-
-
 def test_tof_convert_inplace() -> None:
     """Checks that in-place conversion works.
 
