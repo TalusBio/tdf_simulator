@@ -17,6 +17,10 @@ pyzstd==0.16.0
     # via tdf-simulator (pyproject.toml)
 six==1.16.0
     # via python-dateutil
+tomli==2.0.1
+    # via tdf-simulator (pyproject.toml)
+tomli-w==1.0.0
+    # via tdf-simulator (pyproject.toml)
 tqdm==4.66.4
     # via tdf-simulator (pyproject.toml)
 tzdata==2024.1

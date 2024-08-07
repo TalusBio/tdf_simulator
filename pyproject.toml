@@ -8,10 +8,8 @@ version = "0.0.1"
 description = "A simulator for TDF files."
 readme = "README.md"
 requires-python = ">=3.10"
-license = {file = "Apache 2.0"}
-authors = [
-    {name = "Sebastian Paez", email = "jspaezp@gmail.com"},
-]
+license = { file = "Apache 2.0" }
+authors = [{ name = "Sebastian Paez", email = "jspaezp@gmail.com" }]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
@@ -34,21 +32,35 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = [
-    "pytest",
-    "pytest-cov",
-    "ruff",
-]
+dev = ["pytest", "pytest-cov", "ruff"]
 
 
 [tool.ruff.lint]
 # Enable pycodestyle ('E'), Pyflakes ('F'), isort ('I'), and more
-select = ["E", "F", "I", "N", "D", "UP", "ANN", "S", "BLE", "FBT", "B", "C4", "T20", "PT", "Q"]
+select = [
+    "E",
+    "F",
+    "I",
+    "N",
+    "D",
+    "UP",
+    "ANN",
+    "S",
+    "BLE",
+    "FBT",
+    "B",
+    "C4",
+    "T20",
+    "PT",
+    "Q",
+]
 ignore = [
     "ANN101", # Missing annotation for self in method
     "ANN102", # Missing annotation for cls in class method
-    "D100", # Missing docstring in public module
+    "D100",   # Missing docstring in public module
     "ANN204", # Missing return type annotation for special method `__init__`
+    "D107",   # Missing docstring in __init__
+    "D105",   # Missing docstring in magic method
 ]
 
 [tool.ruff.lint.pycodestyle]
@@ -63,9 +75,9 @@ convention = "google"
     "D104", #  Missing docstring in public package
 ]
 "tests/*.py" = [
-    "S101", # Use of `assert` detected
-    "T201", # `print` found
-    "D103", # Missing docstring
+    "S101",   # Use of `assert` detected
+    "T201",   # `print` found
+    "D103",   # Missing docstring
     "ANN201", # Missing return type
 ]
 

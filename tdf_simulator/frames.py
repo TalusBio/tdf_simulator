@@ -38,7 +38,10 @@ class FrameData:
         )
 
     def __repr_glimpse_nested_arr(
-        self, arr_lst: list[np.array], name: str, indent_level
+        self,
+        arr_lst: list[np.array],
+        name: str,
+        indent_level: int,
     ) -> str:
         lines = [f"{name}=("]
         lines += [f"\tarray({x[:5]} ... len({len(x)})," for x in arr_lst[:5]]
@@ -48,10 +51,10 @@ class FrameData:
         lines = [(indent_level * "\t") + line for line in lines]
         return "\n".join(lines)
 
-    def repr_glimpse_counts(self, indent_level) -> str:
+    def repr_glimpse_counts(self, indent_level: int) -> str:
         return f"{'\t' * indent_level}frame_counts={self.frame_counts[:5]} ... len({len(self.frame_counts)}),"
 
-    def repr_glimpse_tofs(self, indent_level) -> str:
+    def repr_glimpse_tofs(self, indent_level: int) -> str:
         return self.__repr_glimpse_nested_arr(
             self.frame_tofs, "frame_tofs", indent_level=indent_level
         )

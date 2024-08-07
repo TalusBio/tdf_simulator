@@ -12,6 +12,8 @@ from loguru import logger
 
 @dataclass
 class TDFConfig:
+    """Class that holds the configuration of a TDF file."""
+
     SCAN_MODE: int = 9
     MZ_MIN: float = 100.000000
     MZ_MAX: float = 1600.000000
@@ -24,10 +26,20 @@ class TDFConfig:
 
     @property
     def bottleneck_time_ms(self) -> int:
+        """Returns the bottleneck time in milliseconds.
+
+        The bottleneck time is whatever takes the longest between the
+        ramp time and the accumulation time (usually these two are the same
+        value for practical applications).
+        """
         return max(self.ACCUMULATION_TIME, self.RAMP_TIME)
 
     @classmethod
     def from_tdf_connection(cls, conn: sqlite3.Connection) -> TDFConfig:
+        """Create a TDFConfig object from a TDF connection.
+
+        This allows using real TDF files to infer the configuration.
+        """
         dat = conn.execute("SELECT Key, Value FROM GlobalMetadata;")
         dat = {v[0]: v[1] for v in dat}
         return cls(
@@ -50,11 +62,13 @@ class TDFConfig:
 
     @classmethod
     def from_toml_file(cls, file_path: str) -> TDFConfig:
+        """Create a TDFConfig object from a TOML file."""
         with open(file_path, "rb") as f:
             config = tomli.load(f)
         return cls(**config["tdf_config"])
 
     def to_toml(self, file_path: str, *, append: bool = False) -> None:
+        """Save the TDFConfig object to a TOML file."""
         mode = "ab" if append else "wb"
         with open(file_path, mode) as f:
             tomli_w.dump({"tdf_config": asdict(self)}, f)
@@ -62,6 +76,8 @@ class TDFConfig:
 
 @dataclass
 class RunConfig:
+    """Class that holds the configuration of a DIA run."""
+
     num_cycles: int
     frames_per_cycle: int
     num_dia_window_groups: int
@@ -69,6 +85,7 @@ class RunConfig:
 
     @classmethod
     def from_tdf_connection(cls, conn: sqlite3.Connection) -> RunConfig:
+        """Create a RunConfig object from a TDF connection."""
         df = pd.read_sql("SELECT * FROM Frames;", conn)
         window_df = pd.read_sql("SELECT * FROM DiaFrameMsMsWindows;", conn)
         max_rt_minutes = df["Time"].max() / 60
@@ -80,6 +97,28 @@ class RunConfig:
     def from_window_df(
         cls, df: pd.DataFrame, max_rt_minutes: float, tdf_config: TDFConfig
     ) -> RunConfig:
+        """Create a RunConfig object from a window DataFrame.
+
+        Args:
+            df (pd.DataFrame): The DataFrame containing the window information.
+            max_rt_minutes (float): The maximum retention time in minutes.
+            tdf_config (TDFConfig): The TDF configuration.
+
+        Details:
+            - The input dataframe must have the following columns:
+                - WindowGroup: The group number of the window.
+                - ScanNumBegin: The beginning scan number of the window.
+                - ScanNumEnd: The ending scan number of the window.
+                - IsolationMz: The isolation m/z of the window.
+                - IsolationWidth: The isolation width of the window.
+                - CollisionEnergy: The collision energy of the window.
+
+            - The tdf_config object is required to number of cycles that will
+              fit in the maximum retention time.
+
+        Returns:
+            RunConfig: A RunConfig object.
+        """
         max_rt_seconds = max_rt_minutes * 60
         time_per_frame_seconds = tdf_config.bottleneck_time_ms / 1000
 
@@ -106,11 +145,13 @@ class RunConfig:
 
     @classmethod
     def from_toml_file(cls, file_path: str) -> RunConfig:
+        """Create a RunConfig object from a TOML file."""
         with open(file_path, "rb") as f:
             config = tomli.load(f)
         return cls(**config["run_config"])
 
     def to_toml(self, file_path: str, *, append: bool = False) -> None:
+        """Save the RunConfig object to a TOML file."""
         mode = "ab" if append else "wb"
         with open(file_path, mode) as f:
             tomli_w.dump({"run_config": asdict(self)}, f)
@@ -150,6 +191,7 @@ class WindowInfo:
 
     @classmethod
     def from_toml_file(cls, file_path: str) -> list[WindowInfo]:
+        """Create a list of WindowInfo objects from a TOML file."""
         with open(file_path, "rb") as f:
             config = tomli.load(f)
         return [cls(**x) for x in config["window_info"]]
@@ -158,12 +200,14 @@ class WindowInfo:
     def to_toml(
         cls, file_path: str, window_info: list[WindowInfo], *, append: bool = False
     ) -> None:
+        """Save a list of WindowInfo objects to a TOML file."""
         mode = "ab" if append else "wb"
         with open(file_path, mode) as f:
             tomli_w.dump({"window_info": [asdict(x) for x in window_info]}, f)
 
     @classmethod
     def from_tdf_connection(cls, conn: sqlite3.Connection) -> list[WindowInfo]:
+        """Create a list of WindowInfo objects from a TDF connection."""
         df = pd.read_sql("SELECT * FROM DiaFrameMsMsWindows;", conn)
         return [cls.from_dict(x) for x in df.to_dict(orient="records")]
 

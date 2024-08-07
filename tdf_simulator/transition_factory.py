@@ -12,6 +12,8 @@ from tdf_simulator.transition_simulator import (
 
 @dataclass
 class TransitionSimulatorFactory:
+    """Factory for creating TransitionSimulator objects."""
+
     tdf_config: TDFConfig
     run_config: RunConfig
     defaults: dict = None
@@ -31,7 +33,23 @@ class TransitionSimulatorFactory:
                 "run_config": self.run_config,
             }
 
-    def build(self, *args, **kwargs) -> TransitionSimulator:
+    def build(self, *args, **kwargs) -> TransitionSimulator:  # noqa: ANN002,ANN003
+        """Build a TransitionSimulator object.
+
+        Args:
+            *args: Arguments to pass to the TransitionSimulator constructor.
+            **kwargs:
+                Keyword arguments to pass to the TransitionSimulator constructor.
+                More accurately, these are the arguments that will be passed to the
+                TransitionSimulator constructor, but with the defaults from this
+                factory applied.
+
+        Returns:
+            TransitionSimulator: A TransitionSimulator object.
+
+        See Also:
+            TransitionSimulator
+        """
         kwargs = {**self.defaults, **kwargs}
         return TransitionSimulator(*args, **kwargs)
 
@@ -39,6 +57,18 @@ class TransitionSimulatorFactory:
         self,
         kwargs_iter: Iterable[dict],
     ) -> TransitionBundleSimulator:
+        """Build a TransitionBundleSimulator object.
+
+        Args:
+            kwargs_iter: An iterable of dictionaries. Each dictionary contains the
+                keyword arguments to pass to the TransitionSimulator constructor.
+                Check the TransitionSimulator constructor for the expected keyword
+                arguments.
+
+        Returns:
+            TransitionBundleSimulator: A TransitionBundleSimulator object.
+
+        """
         lst = []
         for kwargs in kwargs_iter:
             lst.append(self.build(**kwargs))
@@ -47,6 +77,26 @@ class TransitionSimulatorFactory:
 
     @classmethod
     def from_toml_config(cls, config: dict) -> TransitionSimulatorFactory:
+        """Create a TransitionSimulatorFactory object from a TOML configuration.
+
+        Args:
+            config: A dictionary containing the TOML configuration.
+
+        Details:
+            The configuration must contain the following keys:
+                - "tdf_config": A dictionary containing the TDFConfig configuration.
+                - "run_config": A dictionary containing the RunConfig configuration.
+            The configuration may also contain the following optional keys:
+                - "defaults": A dictionary containing default values to pass to the
+                    TransitionSimulator constructor.
+                - "rt_fwhm_edge": A float representing the maximum FWHM for retention
+                    time edges. (will not simulate intensities beyond this range for
+                    each transition)
+
+        Returns:
+            TransitionSimulatorFactory: A TransitionSimulatorFactory object.
+
+        """
         tdf_config = TDFConfig(**config["tdf_config"])
         run_config = RunConfig(**config["run_config"])
         defaults = config.get("defaults", None)

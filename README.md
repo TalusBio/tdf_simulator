@@ -10,7 +10,7 @@ TDF_SIMULATOR_DEBUG=1 LOGURU_LEVEL="TRACE" python  tdf_simulator/transition_simu
 ## Using a real file as a template
 
 ```shell
-python -m tdf_simulator.config /path/to/my/dotd.d/analysis.tdf --toml settings.toml  
+python -m tdf_simulator.config /path/to/my/dotd.d/analysis.tdf --toml settings.toml
 ```
 
 ## Inspiration

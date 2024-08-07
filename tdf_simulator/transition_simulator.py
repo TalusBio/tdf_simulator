@@ -1,7 +1,6 @@
 import os
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Union
 
 import numpy as np
 from loguru import logger
@@ -17,14 +16,26 @@ NEUTRON_MASS = 1.0
 
 
 class GaussianSimulator:
+    """Simulates a an elution profile for a peak as a gaussian.
+
+    Args:
+        mz (float): The m/z of the peak.
+        intensity (float): The intensity of the peak.
+        apex_time (float): The apex time of the peak.
+        time_fwhm (float): The full width half maximum of the peak in time.
+        apex_ims (float): The apex value in mobility space.
+        ims_fwhm (float): The full width half maximum of the peak in 1/k0 mobility.
+
+    """
+
     def __init__(
         self,
-        mz,
-        intensity,
-        apex_time,
-        time_fwhm,
-        apex_ims,
-        ims_fwhm,
+        mz: float,
+        intensity: float,
+        apex_time: float,
+        time_fwhm: float,
+        apex_ims: float,
+        ims_fwhm: float,
     ):
         self.mz = mz
         self.intensity = intensity
@@ -34,6 +45,7 @@ class GaussianSimulator:
         self.ims_fwhm = ims_fwhm
 
     def sample_ratio_at_time(self, time: float, imms_vals: np.array) -> np.array:
+        """Samples the ratio of the peak at a given time provided a mobility space."""
         time_diff = time - self.apex_time
         time_factor = np.exp(-4 * np.log(2) * time_diff**2 / self.time_fwhm**2)
         imms_diff = imms_vals - self.apex_ims
@@ -41,10 +53,34 @@ class GaussianSimulator:
         return time_factor * imms_factor
 
     def sample_intensity_at_time(self, time: float, imms_vals: np.array) -> np.array:
+        """Gets the intensity of the peak at a given time provided a mobility space."""
         return self.intensity * self.sample_ratio_at_time(time, imms_vals)
 
 
 class TransitionSimulator(PeakSimulator):
+    """Simulates a transitions for a peak on ms1/ms2.
+
+    Args:
+        ms1_mz (float): The m/z of the ms1 peak.
+        ms1_intensity (float): The intensity of the ms1 peak.
+        ms2_mzs (list[float]): The m/z of the ms2 peaks.
+        ms2_intensities (list[float]): The intensity of the ms2 peaks.
+        apex_time (float): The apex time of the ms1 peak.
+        time_fwhm (float): The full width half maximum of the ms1 peak in time.
+        apex_ims (float): The apex value in mobility space.
+        ims_fwhm (float): The full width half maximum of the ms1 peak in 1/k0 mobility.
+        tdf_config (TDFConfig): The tdf configuration.
+        run_config (RunConfig): The run configuration.
+        envelope_intensities (list[float], optional): The envelope intensities.
+            Defaults to None.
+        ms2_envelope_intensities (list[float], optional): The ms2 envelope intensities.
+            Defaults to None.
+        ms2_charges (list[int], optional): The ms2 charges. Defaults to None.
+        ms1_charge (int, optional): The ms1 charge. Defaults to 1.
+
+
+    """
+
     THRESHOLD_INTENSITY = 10
 
     def __init__(
@@ -99,14 +135,17 @@ class TransitionSimulator(PeakSimulator):
 
     @property
     def apex_time(self) -> float:
+        """The apex time of the ms1 peak."""
         return self.ms1_gauss.apex_time
 
     @property
     def time_fwhm(self) -> float:
+        """The full width half maximum of the ms1 peak in time."""
         return self.ms1_gauss.time_fwhm
 
     @cached_property
     def ims_values(self) -> np.array:
+        """The values in mobility space."""
         return self.ims_converter.convert(
             np.arange(self.tdf_config.NUM_SCANS, dtype=np.float64)
         )
@@ -116,6 +155,7 @@ class TransitionSimulator(PeakSimulator):
         time: float,
         window_info: list[WindowInfo] | None,
     ) -> tuple[FrameData, int]:
+        """Generates the frame data for a given time and window info."""
         out = FrameData.from_value_arrays(
             **self._generate_frame_data(time, window_info),
             num_scans=self.tdf_config.NUM_SCANS,
@@ -128,7 +168,7 @@ class TransitionSimulator(PeakSimulator):
         self,
         time: float,
         window_info: list[WindowInfo] | None,
-    ) -> dict[str, Union[np.array, TDFConfig, RunConfig]]:
+    ) -> dict[str, np.array | TDFConfig | RunConfig]:
         tmp = []
         if window_info is None:
             # MS1 frame
@@ -333,6 +373,8 @@ class TransitionSimulator(PeakSimulator):
 
 @dataclass
 class TransitionBundleSimulator:
+    """Simulates a bundle of transitions."""
+
     elems: list[TransitionSimulator]
     max_fwhms: float
     _left_edge: np.array = None
@@ -352,7 +394,18 @@ class TransitionBundleSimulator:
         # This one will be! Since its the rolling max
         self._rollmax_right_edge = np.maximum.accumulate(self._right_edge)
 
-    def generate_frame_data(self, time: float, window_info: list[WindowInfo] | None):
+    def generate_frame_data(
+        self, time: float, window_info: list[WindowInfo] | None
+    ) -> tuple[FrameData, int]:
+        """Generates the frame data for a given time and window info.
+
+        Args:
+            time (float): The time.
+            window_info (list[WindowInfo]): The window info.
+
+        Returns:
+            tuple[FrameData, int]: The frame data and the number of peaks.
+        """
         array_dicts = self._generate_frame_data(time, window_info)
         out = FrameData.from_value_arrays(
             **array_dicts,
@@ -361,7 +414,10 @@ class TransitionBundleSimulator:
         npeaks = len(out.frame_ints)
         return out, npeaks
 
-    def _generate_frame_data(self, time: float, window_info: list[WindowInfo] | None):
+    def _generate_frame_data(
+        self, time: float, window_info: list[WindowInfo] | None
+    ) -> dict[str, np.array]:
+        """Internal method to generate the frame data."""
         right_end = np.searchsorted(self._left_edge, time, "right")
         left_start = np.searchsorted(self._right_edge, time, "left")
 
