@@ -1,0 +1,28 @@
+
+{
+  "transition": {
+    "defaults": {
+      "ims_fwhm": 0.05,
+      "rt_fwhm": 0.4,
+      "envelope_intensities": [0.7, 0.3],
+      "ms2": {
+        "charge": 1
+      }
+    }
+  },
+  "transitions": [
+    {
+      "ms1_mz": 123.2,
+      "ms1_charge": 2,
+      "ms1_intensity": 1000,
+      "apex_ims": 1.2,
+      "ims_fwhm": 0.05,
+      "apex_time": 12.5,
+      "time_fwhm": 0.4,
+      "ms2_mzs": [ 100, 200, 300, 998.5 ],
+      "ms2_intensities": [ 1000, 2000, 3000, 4000 ],
+      "ms2_envelope_intensities": [ 0.1, 0.2, 0.3, 0.4 ],
+      "ms2_charges": [ 1, 2, 3, 2 ]
+    }
+  ]
+}

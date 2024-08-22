@@ -189,6 +189,9 @@ class WindowInfo:
             collision_energy=d["CollisionEnergy"],
         )
 
+    def to_dict(self) -> dict:
+        return asdict(self)
+
     @classmethod
     def from_toml_file(cls, file_path: str) -> list[WindowInfo]:
         """Create a list of WindowInfo objects from a TOML file."""
