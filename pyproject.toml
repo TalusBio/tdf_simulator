@@ -33,6 +33,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest", "pytest-cov", "ruff"]
+viz = ["ipykernel", "timsrust_pyo3", "matplotlib"]
 
 
 [tool.ruff.lint]

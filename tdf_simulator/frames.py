@@ -65,7 +65,9 @@ class FrameData:
         )
 
     @property
-    def max_intensity(self) -> np.array:
+    def max_intensity(self) -> float:
+        if len(self.frame_ints) == 0:
+            return 0.0
         return max(np.max(ints) for ints in self.frame_ints)
 
     @property
@@ -195,12 +197,15 @@ class FrameData:
 
         return out
 
-    def pack_data(self, frame_offset: int) -> bytes:
+    def pack_data(self, frame_offset: int) -> tuple[bytes, int]:
         local_frame_data = []
 
         scans = self.frame_counts
         scan_count = len(scans)
-        ints = np.concatenate(self.frame_ints)
+        if len(self.frame_ints) == 0:
+            ints = np.array([], dtype=np.uint32)
+        else:
+            ints = np.concatenate(self.frame_ints)
         buffer = np.zeros(scan_count + len(ints) * 2, dtype=np.uint32)
         buffer[0] = scan_count
         buffer[1:scan_count] = np.array(scans[:-1]) * 2
@@ -343,11 +348,15 @@ class FrameInfoBuilder:
             {
                 "Frame": frames_id[frames_msms_type == 9],
                 "WindowGroup": [
-                    1 + (x // num_dia_window_groups)
+                    1 + (x % num_dia_window_groups)
                     for x in range((frames_msms_type == 9).sum())
                 ],
             }
         )
+        if max(dia_frame_msms_info["WindowGroup"]) > num_dia_window_groups:
+            raise RuntimeError(
+                "Number of dia window groups is too small for the number of dia windows"
+            )
 
         return dia_frame_msms_info
 

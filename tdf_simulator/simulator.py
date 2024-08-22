@@ -63,7 +63,7 @@ class TDFSimulator:
 
         frame_to_window = {}
         for _i, row in frames_info.iterrows():
-            frame_to_window[row["Frame"]] = row["WindowGroup"]
+            frame_to_window[row["Frame"].item()] = row["WindowGroup"].item()
 
         curr_frame_offset = 0
         frame_offsets = []
@@ -87,9 +87,10 @@ class TDFSimulator:
                         row_dict, window_info=None
                     )
                 else:
+                    window_use = frame_to_window[row_dict["Id"]]
                     frame_data, curr_frame_peaks = self._frame_data_from_row_dict(
                         row_dict,
-                        window_info=grouped_windows[frame_to_window[row_dict["Id"]]],
+                        window_info=grouped_windows[window_use],
                     )
                 max_intensities.append(frame_data.max_intensity)
                 summed_intensities.append(frame_data.summed_intensities)

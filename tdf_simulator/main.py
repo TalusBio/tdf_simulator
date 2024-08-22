@@ -74,6 +74,9 @@ def main(args: argparse.Namespace) -> None:
         windows=windows,
     )
     simulator.peak_simulator = simulator_bundle
+    if Path(args.output_file).exists():
+        raise FileExistsError(f"Output file {args.output_file} already exists.")
+
     simulator.generate_data()
 
 
