@@ -1,9 +1,11 @@
+import argparse
+from pathlib import Path
+
+import tomli
+
 from tdf_simulator.config import RunConfig, TDFConfig, WindowInfo
 from tdf_simulator.simulator import TDFSimulator
 from tdf_simulator.transition_factory import TransitionSimulatorFactory
-import argparse
-from pathlib import Path
-import tomli
 
 
 def build_parser() -> argparse.ArgumentParser:

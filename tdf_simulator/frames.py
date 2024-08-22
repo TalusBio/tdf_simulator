@@ -65,17 +65,17 @@ class FrameData:
         )
 
     @property
-    def max_intensity(self) -> float:
+    def max_intensity(self) -> float:  # noqa: D102
         if len(self.frame_ints) == 0:
             return 0.0
         return max(np.max(ints) for ints in self.frame_ints)
 
     @property
-    def summed_intensities(self) -> np.array:
+    def summed_intensities(self) -> np.array:  # noqa: D102
         return sum(np.sum(ints) for ints in self.frame_ints)
 
     @property
-    def num_peaks(self) -> np.array:
+    def num_peaks(self) -> np.array:  # noqa: D102
         return sum(len(ints) for ints in self.frame_ints)
 
     @staticmethod
@@ -198,6 +198,14 @@ class FrameData:
         return out
 
     def pack_data(self, frame_offset: int) -> tuple[bytes, int]:
+        """Pack the frame data into a binary buffer.
+
+        Args:
+            frame_offset (int): The offset of the frame.
+
+        Returns:
+            tuple[bytes, int]: The binary buffer and the new frame offset.
+        """
         local_frame_data = []
 
         scans = self.frame_counts
@@ -282,11 +290,6 @@ class FrameInfoBuilder:
         summed_intensities: np.array,
         num_peaks: np.array,
     ) -> pd.DataFrame:
-        msms_type = self.tdf_config.MSMS_TYPE
-
-        # This line is in the reference implementation but does nothing...
-        # peaks = num_scans * (num_scans + 1) // 2
-
         frames = self.build_frames_df_template()
         return self.complete_frames_df(
             frames,
@@ -311,7 +314,7 @@ class FrameInfoBuilder:
 
         return frames
 
-    def build_dia_frame_msms_windows(self):
+    def build_dia_frame_msms_windows(self) -> pd.DataFrame:
         num_dia_window_groups = self.run_config.num_dia_window_groups
         scan_groups_per_window_group = self.run_config.scan_groups_per_window_group
 
@@ -360,7 +363,7 @@ class FrameInfoBuilder:
 
         return dia_frame_msms_info
 
-    def build_frame_msms_window_grops(self):
+    def build_frame_msms_window_grops(self) -> pd.DataFrame:
         num_dia_window_groups = self.run_config.num_dia_window_groups
 
         dia_frame_msms_window_groups = pd.DataFrame(

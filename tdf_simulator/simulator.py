@@ -127,7 +127,6 @@ class TDFSimulator:
         info_builder: FrameInfoBuilder,
     ) -> pd.DataFrame:
         """Complete the frames template with the binary offsets and peak information."""
-
         frames = info_builder.complete_frames_df(
             frames_template,
             frame_offsets,

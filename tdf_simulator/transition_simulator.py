@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from functools import cached_property
 
 import numpy as np
-from numpy.typing import ArrayLike
 from loguru import logger
+from numpy.typing import ArrayLike
 from uniplot import plot_to_string
 
 from tdf_simulator.config import RunConfig, TDFConfig

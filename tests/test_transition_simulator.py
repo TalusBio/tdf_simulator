@@ -236,8 +236,7 @@ def test_transition_bundle_simulator():
     assert len(frame_data1[0].frame_ints) == 0
     # Most should be 0s ...
 
-    frame_data2 = tbs.generate_frame_data(6, [wi])
-    breakpoint()
+    _frame_data2 = tbs.generate_frame_data(6, [wi])
 
 
 if __name__ == "__main__":
