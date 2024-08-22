@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from functools import cached_property
 
 import numpy as np
+from numpy.typing import ArrayLike
 from loguru import logger
 from uniplot import plot_to_string
 
@@ -168,7 +169,7 @@ class TransitionSimulator(PeakSimulator):
         self,
         time: float,
         window_info: list[WindowInfo] | None,
-    ) -> dict[str, np.array | TDFConfig | RunConfig]:
+    ) -> dict[str, ArrayLike | TDFConfig | RunConfig]:
         tmp = []
         if window_info is None:
             # MS1 frame

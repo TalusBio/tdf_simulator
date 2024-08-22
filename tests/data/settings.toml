@@ -1,0 +1,208 @@
+[tdf_config]
+SCAN_MODE = 9
+MZ_MIN = 300.0
+MZ_MAX = 1600.0
+NUM_TOF_BINS = 638426
+IM_MIN = 0.64
+IM_MAX = 1.45
+NUM_SCANS = 702
+ACCUMULATION_TIME = 75
+RAMP_TIME = 75
+
+[run_config]
+num_cycles = 1866.0
+frames_per_cycle = 9
+num_dia_window_groups = 8
+scan_groups_per_window_group = 3
+
+[[window_info]]
+window_group = 1
+scan_num_begin = 100
+scan_num_end = 397
+isolation_mz = 812.5
+isolation_width = 25.0
+collision_energy = 42.982989064398545
+
+[[window_info]]
+window_group = 1
+scan_num_begin = 397
+scan_num_end = 545
+isolation_mz = 612.5
+isolation_width = 25.0
+collision_energy = 32.41555285540705
+
+[[window_info]]
+window_group = 1
+scan_num_begin = 545
+scan_num_end = 701
+isolation_mz = 412.5
+isolation_width = 25.0
+collision_energy = 25.212636695018226
+
+[[window_info]]
+window_group = 2
+scan_num_begin = 100
+scan_num_end = 372
+isolation_mz = 837.5
+isolation_width = 25.0
+collision_energy = 43.55164034021871
+
+[[window_info]]
+window_group = 2
+scan_num_begin = 372
+scan_num_end = 529
+isolation_mz = 637.5
+isolation_width = 25.0
+collision_energy = 33.410692588092346
+
+[[window_info]]
+window_group = 2
+scan_num_begin = 529
+scan_num_end = 701
+isolation_mz = 437.5
+isolation_width = 25.0
+collision_energy = 25.591737545565007
+
+[[window_info]]
+window_group = 3
+scan_num_begin = 100
+scan_num_end = 356
+isolation_mz = 862.5
+isolation_width = 25.0
+collision_energy = 43.930741190765495
+
+[[window_info]]
+window_group = 3
+scan_num_begin = 356
+scan_num_end = 512
+isolation_mz = 662.5
+isolation_width = 25.0
+collision_energy = 34.16889428918591
+
+[[window_info]]
+window_group = 3
+scan_num_begin = 512
+scan_num_end = 701
+isolation_mz = 462.5
+isolation_width = 25.0
+collision_energy = 26.018226002430136
+
+[[window_info]]
+window_group = 4
+scan_num_begin = 100
+scan_num_end = 331
+isolation_mz = 887.5
+isolation_width = 25.0
+collision_energy = 44.54678007290401
+
+[[window_info]]
+window_group = 4
+scan_num_begin = 331
+scan_num_end = 487
+isolation_mz = 687.5
+isolation_width = 25.0
+collision_energy = 35.3535844471446
+
+[[window_info]]
+window_group = 4
+scan_num_begin = 487
+scan_num_end = 701
+isolation_mz = 487.5
+isolation_width = 25.0
+collision_energy = 26.586877278250306
+
+[[window_info]]
+window_group = 5
+scan_num_begin = 100
+scan_num_end = 315
+isolation_mz = 912.5
+isolation_width = 25.0
+collision_energy = 44.92588092345079
+
+[[window_info]]
+window_group = 5
+scan_num_begin = 315
+scan_num_end = 471
+isolation_mz = 712.5
+isolation_width = 25.0
+collision_energy = 36.11178614823815
+
+[[window_info]]
+window_group = 5
+scan_num_begin = 471
+scan_num_end = 701
+isolation_mz = 512.5
+isolation_width = 25.0
+collision_energy = 26.965978128797087
+
+[[window_info]]
+window_group = 6
+scan_num_begin = 100
+scan_num_end = 298
+isolation_mz = 937.5
+isolation_width = 25.0
+collision_energy = 45.30498177399757
+
+[[window_info]]
+window_group = 6
+scan_num_begin = 298
+scan_num_end = 455
+isolation_mz = 737.5
+isolation_width = 25.0
+collision_energy = 36.91737545565006
+
+[[window_info]]
+window_group = 6
+scan_num_begin = 455
+scan_num_end = 701
+isolation_mz = 537.5
+isolation_width = 25.0
+collision_energy = 27.345078979343864
+
+[[window_info]]
+window_group = 7
+scan_num_begin = 100
+scan_num_end = 273
+isolation_mz = 962.5
+isolation_width = 25.0
+collision_energy = 45.921020656136086
+
+[[window_info]]
+window_group = 7
+scan_num_begin = 273
+scan_num_end = 430
+isolation_mz = 762.5
+isolation_width = 25.0
+collision_energy = 38.10206561360875
+
+[[window_info]]
+window_group = 7
+scan_num_begin = 430
+scan_num_end = 701
+isolation_mz = 562.5
+isolation_width = 25.0
+collision_energy = 27.961117861482382
+
+[[window_info]]
+window_group = 8
+scan_num_begin = 100
+scan_num_end = 257
+isolation_mz = 987.5
+isolation_width = 25.0
+collision_energy = 46.30012150668287
+
+[[window_info]]
+window_group = 8
+scan_num_begin = 257
+scan_num_end = 413
+isolation_mz = 787.5
+isolation_width = 25.0
+collision_energy = 38.86026731470231
+
+[[window_info]]
+window_group = 8
+scan_num_begin = 413
+scan_num_end = 701
+isolation_mz = 587.5
+isolation_width = 25.0
+collision_energy = 28.340218712029163

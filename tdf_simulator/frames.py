@@ -44,15 +44,15 @@ class FrameData:
         indent_level: int,
     ) -> str:
         lines = [f"{name}=("]
-        lines += [f"\tarray({x[:5]} ... len({len(x)})," for x in arr_lst[:5]]
-        lines += ["\t..."]
-        lines += [f"\t... len({len(arr_lst)})", ")"]
+        lines += [f"  array({x[:5]} ... len({len(x)})," for x in arr_lst[:5]]
+        lines += ["  ..."]
+        lines += [f"  ... len({len(arr_lst)})", ")"]
 
         lines = [(indent_level * "\t") + line for line in lines]
         return "\n".join(lines)
 
     def repr_glimpse_counts(self, indent_level: int) -> str:
-        return f"{'\t' * indent_level}frame_counts={self.frame_counts[:5]} ... len({len(self.frame_counts)}),"
+        return f"{'  ' * indent_level}frame_counts={self.frame_counts[:5]} ... len({len(self.frame_counts)}),"
 
     def repr_glimpse_tofs(self, indent_level: int) -> str:
         return self.__repr_glimpse_nested_arr(
@@ -248,12 +248,13 @@ class FrameInfoBuilder:
         frame_time_seconds = frame_time / 1000
 
         msms_type = [
-            0 if i % frames_per_cycle == 0 else scanmode for i in range(num_frames)
+            0 if i % frames_per_cycle == 0 else scanmode for i in range(int(num_frames))
         ]
 
         # This line is in the reference implementation but does nothing...
         # peaks = num_scans * (num_scans + 1) // 2
 
+        num_frames = int(num_frames)
         frames = pd.DataFrame(
             {
                 "Id": np.arange(1, num_frames + 1),

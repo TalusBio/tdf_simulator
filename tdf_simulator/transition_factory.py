@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from collections.abc import Iterable
 from dataclasses import dataclass
 
@@ -75,6 +76,25 @@ class TransitionSimulatorFactory:
 
         return TransitionBundleSimulator(lst, max_fwhms=self.rt_fwhm_edge)
 
+    def build_transition_bundle_from_json(
+        self, json_path: str
+    ) -> TransitionBundleSimulator:
+        """Build a TransitionBundleSimulator object from a JSON file.
+
+        Args:
+            json_path (str): The path to the JSON file.
+
+        Returns:
+            TransitionBundleSimulator: A TransitionBundleSimulator object.
+        """
+        with open(json_path) as f:
+            config = json.load(f)
+
+        if "transitions" in config:
+            config = config["transitions"]
+
+        return self.build_transition_bundle(config)
+
     @classmethod
     def from_toml_config(cls, config: dict) -> TransitionSimulatorFactory:
         """Create a TransitionSimulatorFactory object from a TOML configuration.
@@ -100,6 +120,8 @@ class TransitionSimulatorFactory:
         tdf_config = TDFConfig(**config["tdf_config"])
         run_config = RunConfig(**config["run_config"])
         defaults = config.get("defaults", None)
+        # max_rt = run_config.num_cycles * tdf_config.bottleneck_time_ms / 1000
+        # Max width a peak can have ... ish ...
         rt_fwhm_edge = config.get("rt_fwhm_edge", 5.0)
 
         return cls(tdf_config, run_config, defaults, rt_fwhm_edge)

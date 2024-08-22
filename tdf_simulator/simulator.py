@@ -54,7 +54,7 @@ class TDFSimulator:
         frames_template = info_builder.build_frames_df_template()
         self.report_frame_expects(frames_template)
         windows, grouped_windows = self.get_grouped_windows(
-            info_builder, frames_template
+            info_builder,  # frames_template
         )
         frames_info = info_builder.build_frame_msms_info(
             frames_id=frames_template["Id"],

@@ -13,6 +13,13 @@ TDF_SIMULATOR_DEBUG=1 LOGURU_LEVEL="TRACE" python  tdf_simulator/transition_simu
 python -m tdf_simulator.config /path/to/my/dotd.d/analysis.tdf --toml settings.toml
 ```
 
+
+## Custom data
+
+```shell
+python -m tdf_simulator.main --output_file mysupercoolfile.d --config_file settings.toml --transitions_config_file  transitions.json
+```
+
 ## Inspiration
 
 The original implementation was adopted from the tests in timsrust,
