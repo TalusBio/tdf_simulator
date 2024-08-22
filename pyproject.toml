@@ -32,7 +32,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "pytest-cov", "ruff"]
+dev = ["pytest", "pytest-cov", "ruff", "coverage"]
 viz = ["ipykernel", "timsrust_pyo3", "matplotlib"]
 
 
