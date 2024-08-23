@@ -10,7 +10,7 @@ import tomli_w
 from loguru import logger
 
 
-@dataclass
+@dataclass(frozen=True, eq=True)
 class TDFConfig:
     """Class that holds the configuration of a TDF file."""
 

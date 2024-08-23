@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from functools import lru_cache
 from dataclasses import dataclass
 from sqlite3 import Connection
 
@@ -39,6 +40,7 @@ class SpecConverter:
         return out
 
     @classmethod
+    @lru_cache(maxsize=32)
     def from_params(
         cls,
         im_min: float,
@@ -128,6 +130,7 @@ class Tof2MzConverter:
         return out
 
     @classmethod
+    @lru_cache(maxsize=32)
     def from_config(cls, config: TDFConfig) -> Tof2MzConverter:
         """Creates a Tof2MzConverter from a TDFConfig object."""
         return cls.new(
