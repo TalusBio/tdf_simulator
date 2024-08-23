@@ -1,3 +1,4 @@
+import sys
 import argparse
 from pathlib import Path
 
@@ -57,6 +58,7 @@ def main(args: argparse.Namespace) -> None:
             num_dia_window_groups=2,
             scan_groups_per_window_group=2,
         )
+        sys.exit(0)
 
     with open(args.config_file, "rb") as f:
         config = tomli.load(f)
