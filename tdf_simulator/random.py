@@ -20,7 +20,7 @@ class RandomTransitionBuilder:
     max_charge = 3
     envelope_intensities = [0.7, 0.3, 0.1]
     min_intensity: float = 1000
-    max_intensity: float = 10000
+    max_intensity: float = 100_000
     min_apex_ims: float = 0.5
     max_apex_ims: float = 1.5
     ims_fwhm: float = 0.05

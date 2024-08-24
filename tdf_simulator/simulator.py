@@ -79,7 +79,11 @@ class TDFSimulator:
         bin_out = folder / "analysis.tdf_bin"
         logger.info("Generating binary file: {}", bin_out)
         with open(bin_out, "wb") as f:
-            for _i, row in tqdm(frames_template.iterrows()):
+            for _i, row in tqdm(
+                frames_template.iterrows(),
+                total=len(frames_template),
+                desc="Writing frames",
+            ):
                 row_dict = row.to_dict()
                 frame_offsets.append(curr_frame_offset)
                 if row_dict["MsMsType"] == 0:
