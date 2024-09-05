@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import pyzstd
 from loguru import logger
+from numpy.typing import NDArray
 
 from tdf_simulator.config import RunConfig, TDFConfig
 from tdf_simulator.converters import SpecConverter, Tof2MzConverter
@@ -14,9 +15,9 @@ from tdf_simulator.utils import is_sorted_asc
 
 @dataclass
 class FrameData:
-    frame_counts: np.array
-    frame_tofs: list[np.array]
-    frame_ints: list[np.array]
+    frame_counts: NDArray
+    frame_tofs: list[NDArray]
+    frame_ints: list[NDArray]
 
     def __post_init__(self):
         logger.trace(self.repr_glimpse())
@@ -39,7 +40,7 @@ class FrameData:
 
     def __repr_glimpse_nested_arr(
         self,
-        arr_lst: list[np.array],
+        arr_lst: list[NDArray],
         name: str,
         indent_level: int,
     ) -> str:
@@ -51,15 +52,17 @@ class FrameData:
         lines = [(indent_level * "\t") + line for line in lines]
         return "\n".join(lines)
 
-    def repr_glimpse_counts(self, indent_level: int) -> str:
-        return f"{'  ' * indent_level}frame_counts={self.frame_counts[:5]} ... len({len(self.frame_counts)}),"
+    def repr_glimpse_counts(self, indent_level: int) -> str:  # noqa: D102
+        out = f"{'  ' * indent_level}frame_counts={self.frame_counts[:5]}"
+        out += f"... len({len(self.frame_counts)}),"
+        return out
 
-    def repr_glimpse_tofs(self, indent_level: int) -> str:
+    def repr_glimpse_tofs(self, indent_level: int) -> str:  # noqa: D102
         return self.__repr_glimpse_nested_arr(
             self.frame_tofs, "frame_tofs", indent_level=indent_level
         )
 
-    def repr_glimpse_ints(self, indent_level) -> str:
+    def repr_glimpse_ints(self, indent_level: int) -> str:  # noqa: D102
         return self.__repr_glimpse_nested_arr(
             self.frame_ints, "frame_ints", indent_level=indent_level
         )
@@ -71,11 +74,11 @@ class FrameData:
         return max(np.max(ints) for ints in self.frame_ints)
 
     @property
-    def summed_intensities(self) -> np.array:  # noqa: D102
+    def summed_intensities(self) -> int:  # noqa: D102
         return sum(np.sum(ints) for ints in self.frame_ints)
 
     @property
-    def num_peaks(self) -> np.array:  # noqa: D102
+    def num_peaks(self) -> int:  # noqa: D102
         return sum(len(ints) for ints in self.frame_ints)
 
     @staticmethod
@@ -83,6 +86,10 @@ class FrameData:
         num_scans: int,
         offset: int = 0,
     ) -> tuple[FrameData, int]:
+        """Generates a dummy FrameData object.
+
+        The dummy object is just a 'saw tooth' pattern of scans.
+        """
         frame_tofs = []
         frame_ints = []
         frame_counts = []
@@ -105,7 +112,9 @@ class FrameData:
 
     @classmethod
     def from_array_lists(
-        cls, tof_indices: list[np.array], int_arrays: list[np.array]
+        cls,
+        tof_indices: list[NDArray],
+        int_arrays: list[NDArray],
     ) -> FrameData:
         frame_counts = np.array([len(tof) for tof in tof_indices])
         for i, tof in enumerate(tof_indices):
@@ -124,9 +133,9 @@ class FrameData:
     @classmethod
     def from_value_arrays(
         cls,
-        mzs: np.array,
-        intensities: np.array,
-        imss: np.array,
+        mzs: NDArray,
+        intensities: NDArray,
+        imss: NDArray,
         ims_converter: SpecConverter,
         mz_converter: Tof2MzConverter,
         num_scans: int,
@@ -302,10 +311,10 @@ class FrameInfoBuilder:
     def complete_frames_df(
         self,
         frames: pd.DataFrame,
-        frame_offsets: np.array,
-        max_intensities: np.array,
-        summed_intensities: np.array,
-        num_peaks: np.array,
+        frame_offsets: NDArray,
+        max_intensities: NDArray,
+        summed_intensities: NDArray,
+        num_peaks: NDArray,
     ) -> pd.DataFrame:
         frames["TimsId"] = frame_offsets
         frames["MaxIntensity"] = max_intensities
