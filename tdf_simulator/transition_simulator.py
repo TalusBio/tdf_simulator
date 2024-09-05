@@ -161,9 +161,8 @@ class TransitionSimulator(PeakSimulator):
             **self._generate_frame_data(time, window_info),
             num_scans=self.tdf_config.NUM_SCANS,
         )
-        npeaks = len(out.frame_ints)
 
-        return out, npeaks
+        return out, out.num_peaks
 
     def _generate_frame_data(
         self,
@@ -412,8 +411,7 @@ class TransitionBundleSimulator:
             **array_dicts,
             num_scans=self.elems[0].tdf_config.NUM_SCANS,
         )
-        npeaks = len(out.frame_ints)
-        return out, npeaks
+        return out, out.num_peaks
 
     def _generate_frame_data(
         self, time: float, window_info: list[WindowInfo] | None

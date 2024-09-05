@@ -190,7 +190,14 @@ class WindowInfo:
         )
 
     def to_dict(self) -> dict:
-        return asdict(self)
+        return {
+            "WindowGroup": self.window_group,
+            "ScanNumBegin": self.scan_num_begin,
+            "ScanNumEnd": self.scan_num_end,
+            "IsolationMz": self.isolation_mz,
+            "IsolationWidth": self.isolation_width,
+            "CollisionEnergy": self.collision_energy,
+        }
 
     @classmethod
     def from_toml_file(cls, file_path: str) -> list[WindowInfo]:
@@ -213,6 +220,21 @@ class WindowInfo:
         """Create a list of WindowInfo objects from a TDF connection."""
         df = pd.read_sql("SELECT * FROM DiaFrameMsMsWindows;", conn)
         return [cls.from_dict(x) for x in df.to_dict(orient="records")]
+
+
+def test_back_and_forth_dict() -> None:
+    """Test that the conversion back and forth is consistent."""
+    win = WindowInfo(
+        window_group=1,
+        scan_num_begin=100,
+        scan_num_end=200,
+        isolation_mz=100,
+        isolation_width=50,
+        collision_energy=42,
+    )
+    win_dict = win.to_dict()
+    win_back = WindowInfo.from_dict(win_dict)
+    assert win == win_back  # noqa: S101
 
 
 if __name__ == "__main__":

@@ -106,7 +106,7 @@ def test_transition_simulator() -> None:
 
     assert len(frame_data2[0].frame_ints) == 0
     assert len(frame_data1[0].frame_ints) > 0
-    assert len(frame_data1[0].frame_ints) == frame_data1[1]
+    assert sum(len(x) for x in frame_data1[0].frame_ints) == frame_data1[1]
 
     # frame_data_ms1 = ts.generate_frame_data(60, None)
 

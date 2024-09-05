@@ -7,6 +7,7 @@ from sqlite3 import Connection
 
 import numpy as np
 from loguru import logger
+from numpy.typing import NDArray, ArrayLike
 
 from tdf_simulator.config import TDFConfig
 
@@ -18,22 +19,31 @@ class SpecConverter:
     intercept: float
     slope: float
 
-    def convert(self, num: np.typing.ArrayLike) -> np.array:
+    def convert(self, num: NDArray | int | float) -> NDArray | float:
         """Converts a numpy array of scan indices to 1/k0 values."""
         return (num * self.slope) + self.intercept
 
-    def convert_inplace(self, num: np.typing.ArrayLike) -> None:
+    def convert_inplace(self, num: NDArray) -> None:
         """Converts a numpy array of scan indices to 1/k0 values in place.
 
         Note: This assumes the array is already a float array.
         There is no type checking for performance reasons. So be careful.
         """
+        if not hasattr(num, "dtype") or (
+            num.dtype != np.float64 and num.dtype != np.float32
+        ):
+            raise ValueError("num must be a float array.")
         num *= self.slope
         num += self.intercept
 
-    def to_index(self, num: np.typing.ArrayLike, *, safely: bool = True) -> np.array:
-        """Converts a numpy array of 1/k0 values to scan indices."""
-        out = ((num - self.intercept) / self.slope).astype(np.int64)
+    def to_index(self, num: NDArray, *, safely: bool = True) -> NDArray:
+        """Converts a numpy array of 1/k0 values to scan indices.
+
+        Note: Since this converts from floats to ints, there is the possibility
+        of rounding errors. (converting back and forth will commonly have off
+        by 1 differences)
+        """
+        out = np.rint((num - self.intercept) / self.slope).astype(np.int64)
 
         if safely and np.any(out < 0):
             raise ValueError("Some values are below 0. This is not allowed.")
@@ -107,11 +117,11 @@ class Tof2MzConverter:
         )
         return Tof2MzConverter(tof_intercept, tof_slope)
 
-    def convert(self, tof_index_f64: np.array) -> np.array:
+    def convert(self, tof_index_f64: NDArray) -> NDArray:
         """Converts a numpy array of TOF indices to m/z values."""
         return np.square(self.tof_intercept + self.tof_slope * tof_index_f64)
 
-    def convert_inplace(self, tof_index_f64: np.array) -> None:
+    def convert_inplace(self, tof_index_f64: NDArray) -> None:
         """Converts a numpy array of TOF indices to m/z values in place.
 
         Note: This assumes the array is already a float array.
@@ -121,9 +131,16 @@ class Tof2MzConverter:
         tof_index_f64 += self.tof_intercept
         np.square(tof_index_f64, out=tof_index_f64)
 
-    def to_index(self, mz_f64: np.array, *, safely: bool = True) -> np.array:
-        """Converts a numpy array of m/z values to TOF indices."""
-        out = ((np.sqrt(mz_f64) - self.tof_intercept) / self.tof_slope).astype(np.int64)
+    def to_index(self, mz_f64: NDArray, *, safely: bool = True) -> NDArray:
+        """Converts a numpy array of m/z values to TOF indices.
+
+        Note: Since this converts from floats to ints, there is the possibility
+        of rounding errors. (converting back and forth will commonly have off
+        by 1 differences)
+        """
+        out = np.rint((np.sqrt(mz_f64) - self.tof_intercept) / self.tof_slope).astype(
+            np.int64
+        )
         if safely and np.any(out < 0):
             raise ValueError("Some values are below 0. This is not allowed.")
 
