@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pandas as pd
 from loguru import logger
 from tqdm.auto import tqdm
@@ -133,22 +134,27 @@ class TDFSimulator:
         """Complete the frames template with the binary offsets and peak information."""
         frames = info_builder.complete_frames_df(
             frames_template,
-            frame_offsets,
-            max_intensities,
-            summed_intensities,
-            num_peaks,
+            np.array(frame_offsets),
+            np.array(max_intensities),
+            np.array(summed_intensities),
+            np.array(num_peaks),
         )
         return frames
 
-    def get_grouped_windows(
-        self, info_builder: pd.DataFrame | None = None
+    def get_grouped_windows(  # noqa: D102
+        self, info_builder: FrameInfoBuilder | None = None
     ) -> tuple[pd.DataFrame, dict[int, list[WindowInfo]]]:
         if self.windows is None:
+            if info_builder is None:
+                raise ValueError("info_builder must be provided if windows is None")
             return self._get_grp_windows_tdf(info_builder)
         else:
             return self._get_grp_windows_local()
 
-    def _get_grp_windows_tdf(self, info_builder):
+    def _get_grp_windows_tdf(
+        self,
+        info_builder: FrameInfoBuilder,
+    ) -> tuple[pd.DataFrame, dict[int, list[WindowInfo]]]:
         windows = info_builder.build_dia_frame_msms_windows()
         grouped_windows = {}
         for g, sdg in windows.groupby("WindowGroup"):
@@ -158,9 +164,15 @@ class TDFSimulator:
 
         return windows, grouped_windows
 
-    def _get_grp_windows_local(self):
+    def _get_grp_windows_local(
+        self,
+    ) -> tuple[pd.DataFrame, dict[int, list[WindowInfo]]]:
+        if self.windows is None:
+            raise RuntimeError("self.windows is None (should be set for this method)")
+
         windows = pd.DataFrame([x.to_dict() for x in self.windows])
         grouped_windows = {}
+
         for w in self.windows:
             if w.window_group not in grouped_windows:
                 grouped_windows[w.window_group] = []

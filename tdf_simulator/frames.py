@@ -15,6 +15,19 @@ from tdf_simulator.utils import is_sorted_asc
 
 @dataclass
 class FrameData:
+    """Minimal dataclass to hold the data for a frame.
+
+    Args:
+        frame_counts (NDArray):
+            The number of peaks in each scan.
+            Thus in theory it should be the same as
+            `np.array([len(x) for x in frame_ints])`
+        frame_tofs (list[NDArray]):
+            The TOF indices of the peaks in each scan.
+        frame_ints (list[NDArray]):
+            The intensities of the peaks in each scan.
+    """
+
     frame_counts: NDArray
     frame_tofs: list[NDArray]
     frame_ints: list[NDArray]
@@ -27,7 +40,7 @@ class FrameData:
             msg += f"Intensities: {sum(len(x) for x in self.frame_ints)}"
             raise ValueError(msg)
 
-    def repr_glimpse(self) -> str:
+    def repr_glimpse(self) -> str:  # noqa: D102
         return "\n".join(
             [
                 "\nFrameData(",
@@ -116,7 +129,27 @@ class FrameData:
         tof_indices: list[NDArray],
         int_arrays: list[NDArray],
     ) -> FrameData:
+        """Creates a FrameData object from a list of TOF indices and intensities.
+
+        Args:
+            tof_indices (list[NDArray]):
+                The TOF indices of the peaks in each scan.
+            int_arrays (list[NDArray]):
+                The intensities of the peaks in each scan.
+
+        Returns:
+            FrameData
+                The FrameData object.
+        """
         frame_counts = np.array([len(tof) for tof in tof_indices])
+
+        if len(frame_counts) != len(int_arrays):
+            raise ValueError(
+                "The number of arrays must be the same as the number of scans."
+                f" Got {len(frame_counts)} for frame_counts and {len(int_arrays)}"
+                " for int_arrays"
+            )
+
         for i, tof in enumerate(tof_indices):
             if not is_sorted_asc(tof):
                 msg = f"Frame {i} TOF indices must be sorted in ascending order."
@@ -255,10 +288,12 @@ class FrameData:
 
 @dataclass
 class FrameInfoBuilder:
+    """Builds the frame info for a TDF file."""
+
     tdf_config: TDFConfig
     run_config: RunConfig
 
-    def build_frames_df_template(self) -> pd.DataFrame:
+    def build_frames_df_template(self) -> pd.DataFrame:  # noqa: D102
         num_frames = self.run_config.num_cycles * self.run_config.frames_per_cycle
         frames_per_cycle = self.run_config.frames_per_cycle
         scanmode = self.tdf_config.SCAN_MODE
@@ -292,12 +327,12 @@ class FrameInfoBuilder:
         )
         return frames
 
-    def build_frames_df(
+    def build_frames_df(  # noqa: D102
         self,
-        frame_offsets: np.array,
-        max_intensities: np.array,
-        summed_intensities: np.array,
-        num_peaks: np.array,
+        frame_offsets: NDArray,
+        max_intensities: NDArray,
+        summed_intensities: NDArray,
+        num_peaks: NDArray,
     ) -> pd.DataFrame:
         frames = self.build_frames_df_template()
         return self.complete_frames_df(
@@ -308,7 +343,7 @@ class FrameInfoBuilder:
             num_peaks,
         )
 
-    def complete_frames_df(
+    def complete_frames_df(  # noqa: D102
         self,
         frames: pd.DataFrame,
         frame_offsets: NDArray,
@@ -323,7 +358,7 @@ class FrameInfoBuilder:
 
         return frames
 
-    def build_dia_frame_msms_windows(self) -> pd.DataFrame:
+    def build_dia_frame_msms_windows(self) -> pd.DataFrame:  # noqa: D102
         num_dia_window_groups = self.run_config.num_dia_window_groups
         scan_groups_per_window_group = self.run_config.scan_groups_per_window_group
 
@@ -351,7 +386,7 @@ class FrameInfoBuilder:
         )
         return dia_frame_msms_windows
 
-    def build_frame_msms_info(
+    def build_frame_msms_info(  # noqa: D102
         self, frames_id: pd.Series, frames_msms_type: pd.Series
     ) -> pd.DataFrame:
         num_dia_window_groups = self.run_config.num_dia_window_groups
@@ -372,7 +407,7 @@ class FrameInfoBuilder:
 
         return dia_frame_msms_info
 
-    def build_frame_msms_window_grops(self) -> pd.DataFrame:
+    def build_frame_msms_window_grops(self) -> pd.DataFrame:  # noqa: D102
         num_dia_window_groups = self.run_config.num_dia_window_groups
 
         dia_frame_msms_window_groups = pd.DataFrame(

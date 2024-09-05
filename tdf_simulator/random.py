@@ -5,13 +5,13 @@ from pathlib import Path
 
 import tomli
 
-from tdf_simulator.config import RunConfig, TDFConfig, WindowInfo
+from tdf_simulator.config import WindowInfo
 from tdf_simulator.simulator import TDFSimulator
 from tdf_simulator.transition_factory import TransitionSimulatorFactory
 
 
 @dataclass
-class RandomTransitionBuilder:
+class RandomTransitionBuilder:  # noqa: D101
     min_mz: float = 400
     max_mz: float = 1000
     min_time: float = 100
@@ -34,7 +34,7 @@ class RandomTransitionBuilder:
     num_transitions_min: int = 2
     num_transitions_max: int = 10
 
-    def build_one(self) -> dict:
+    def build_one(self) -> dict:  # noqa: D102
         ms2_mzs = [
             random.uniform(self.min_ms2_mz, self.max_ms2_mz)
             for _ in range(
@@ -60,11 +60,11 @@ class RandomTransitionBuilder:
             ],
         }
 
-    def build_transitions(self, num_transitions: int) -> list[dict]:
+    def build_transitions(self, num_transitions: int) -> list[dict]:  # noqa: D102
         return [self.build_one() for _ in range(num_transitions)]
 
 
-def build_parser() -> argparse.ArgumentParser:
+def build_parser() -> argparse.ArgumentParser:  # noqa: D103
     parser = argparse.ArgumentParser(
         description="Simulate a TDF files using random transitions."
     )
@@ -90,7 +90,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(args: argparse.Namespace) -> None:
+def main(args: argparse.Namespace) -> None:  # noqa: D103
     with open(args.config_file, "rb") as f:
         config = tomli.load(f)
 

@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import math
-from functools import lru_cache
 from dataclasses import dataclass
+from functools import lru_cache
 from sqlite3 import Connection
 
 import numpy as np
 from loguru import logger
-from numpy.typing import NDArray, ArrayLike
+from numpy.typing import NDArray
 
 from tdf_simulator.config import TDFConfig
 

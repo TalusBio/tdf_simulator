@@ -6,7 +6,7 @@ from tdf_simulator.config import RunConfig, TDFConfig
 
 
 @dataclass
-class TDFInfoBuilder:
+class TDFInfoBuilder:  # noqa: D101
     tdf_config: TDFConfig
     run_config: RunConfig
 
