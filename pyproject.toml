@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tdf_simulator"
-version = "0.0.1"
+version = "0.1.0"
 description = "A simulator for TDF files."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -33,7 +33,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest", "pytest-cov", "ruff", "coverage"]
-viz = ["ipykernel", "timsrust_pyo3", "matplotlib"]
+viz = ["ipykernel", "timsrust_pyo3 >= 0.4.0", "matplotlib", "notebook"]
 test = ["pytest"]
 
 [tool.setuptools.packages.find]
