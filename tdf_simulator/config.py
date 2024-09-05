@@ -119,12 +119,12 @@ class RunConfig:
         Returns:
             RunConfig: A RunConfig object.
         """
-        max_rt_seconds = max_rt_minutes * 60
-        time_per_frame_seconds = tdf_config.bottleneck_time_ms / 1000
+        max_rt_seconds = float(max_rt_minutes * 60)
+        time_per_frame_seconds = float(tdf_config.bottleneck_time_ms / 1000)
 
         # I am assuming here that all window groups are acquired between
         # every ms1. Thus num_dia_window_groups + 1 == frames_per_cycle
-        num_dia_window_groups = df["WindowGroup"].max()
+        num_dia_window_groups = int(df["WindowGroup"].max())
         frames_per_cycle = num_dia_window_groups + 1
         scan_groups_per_window_group = [len(x) for _i, x in df.groupby("WindowGroup")]
         if len(set(scan_groups_per_window_group)) > 1:
@@ -135,11 +135,11 @@ class RunConfig:
         scan_groups_per_window_group = scan_groups_per_window_group[0]
 
         return RunConfig(
-            num_cycles=(
+            num_cycles=int(
                 max_rt_seconds // (time_per_frame_seconds * frames_per_cycle)
-            ).item(),
-            frames_per_cycle=frames_per_cycle.item(),
-            num_dia_window_groups=num_dia_window_groups.item(),
+            ),
+            frames_per_cycle=frames_per_cycle,
+            num_dia_window_groups=num_dia_window_groups,
             scan_groups_per_window_group=scan_groups_per_window_group,
         )
 
@@ -189,7 +189,7 @@ class WindowInfo:
             collision_energy=d["CollisionEnergy"],
         )
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict:  # noqa: D102
         return {
             "WindowGroup": self.window_group,
             "ScanNumBegin": self.scan_num_begin,

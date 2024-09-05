@@ -1,5 +1,5 @@
-import sys
 import argparse
+import sys
 from pathlib import Path
 
 import tomli
@@ -9,7 +9,7 @@ from tdf_simulator.simulator import TDFSimulator
 from tdf_simulator.transition_factory import TransitionSimulatorFactory
 
 
-def build_parser() -> argparse.ArgumentParser:
+def build_parser() -> argparse.ArgumentParser:  # noqa: D103
     parser = argparse.ArgumentParser(description="Simulate a TDF files.")
 
     parser.add_argument(
@@ -42,7 +42,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(args: argparse.Namespace) -> None:
+def main(args: argparse.Namespace) -> None:  # noqa: D103
     if args.write_config_template:
         if Path(args.output_file).exists():
             raise FileExistsError(f"Output file {args.output_file} already exists.")
